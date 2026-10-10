@@ -1,0 +1,145 @@
+/* Scoped to the extension so Zammad's controls retain their own styles. */
+.za-player {
+  --za-accent: #2563eb;
+  --za-ink: #172b46;
+  --za-muted: #64748b;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'header header' 'toolbar toolbar' 'native native' 'controls speed' 'seek seek' 'status status' 'notice notice' 'transcript transcript';
+  width: min(100%, 760px);
+  min-width: 0;
+  container-type: inline-size;
+  margin: 8px 0 10px;
+  padding: 12px;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: linear-gradient(150deg, #fff 0%, #f7faff 100%);
+  box-shadow: 0 3px 12px #142a4510;
+  color: var(--za-ink);
+  font: 13px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  text-align: left;
+  color-scheme: light;
+}
+.za-player *, .za-player *::before, .za-player *::after { box-sizing: border-box; }
+.za-player [hidden] { display: none !important; }
+.za-player button, .za-player select, .za-player input, .za-player textarea { font-family: inherit; }
+.za-player button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #d5dfeb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+  color: #344b68;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.za-player button:hover { background: #edf3ff; border-color: #a6bfe6; }
+.za-player :is(button, select, input, textarea):focus-visible { outline: 3px solid #93b7ff; outline-offset: 3px; }
+.za-player button:disabled { opacity: .55; cursor: wait; }
+.za-header { grid-area: header; display: flex; align-items: center; gap: 12px; min-width: 0; padding-bottom: 10px; }
+.za-header::before {
+  content: '';
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e9f0ff;
+  background-image: linear-gradient(#2563eb, #2563eb), linear-gradient(#2563eb, #2563eb), linear-gradient(#2563eb, #2563eb), linear-gradient(#2563eb, #2563eb), linear-gradient(#2563eb, #2563eb);
+  background-size: 2px 6px, 2px 14px, 2px 22px, 2px 14px, 2px 6px;
+  background-position: 9px center, 13px center, 17px center, 21px center, 25px center;
+  background-repeat: no-repeat;
+}
+.za-heading-group { min-width: 0; flex: 1; }
+.za-caption { font-size: 13px; font-weight: 700; color: var(--za-ink); line-height: 1.5; }
+.za-title { margin-top: 2px; color: var(--za-muted); font-size: 11px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.za-filetype { flex: 0 0 auto; padding: 3px 6px; border: 1px solid #dae5f3; border-radius: 5px; color: #55708e; background: #f4f7fc; font-size: 10px; font-weight: 700; letter-spacing: .5px; }
+.za-toolbar { grid-area: toolbar; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-bottom: 8px; }
+.za-player .za-load { flex: 0 0 auto; margin: 0 !important; }
+.za-player .za-load, .za-pcm-controls button { background: var(--za-accent); border-color: var(--za-accent); color: #fff; }
+.za-player .za-load:hover, .za-pcm-controls button:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.za-player audio { grid-area: native; display: block; width: 100%; height: 40px; margin-bottom: 12px; }
+.za-pcm-controls { grid-area: controls; display: flex; align-items: center; gap: 12px; min-width: 0; padding-right: 10px; }
+.za-pcm-controls button { min-width: 92px; }
+.za-volume { display: flex !important; align-items: center; gap: 7px; margin: 0 !important; color: var(--za-muted); font-size: 10px !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: normal !important; }
+.za-volume input { width: 64px; }
+.za-speed { grid-area: speed; display: flex !important; align-items: center; justify-content: flex-end; gap: 6px; margin: 0 !important; color: var(--za-muted); font-size: 10px !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: normal !important; }
+.za-speed select { width: 58px; height: 34px; margin: 0; padding: 4px 5px; border: 1px solid #d5dfeb; border-radius: 8px; color: var(--za-ink); background: #fff; font-size: 12px; cursor: pointer; }
+.za-seek { grid-area: seek; display: grid; grid-template-columns: 46px minmax(0, 1fr) 46px; align-items: center; gap: 4px 10px; margin-top: 8px; }
+.za-seek input { grid-column: 2; grid-row: 1; width: 100%; min-width: 0; }
+.za-seek button { padding: 5px 0; min-height: 30px; font-size: 11px; background: #f2f6fc; border-color: transparent; }
+.za-seek button:nth-of-type(1) { grid-column: 1; grid-row: 1; }
+.za-seek button:nth-of-type(2) { grid-column: 3; grid-row: 1; }
+.za-time { grid-column: 2; grid-row: 2; color: var(--za-muted); font-size: 11px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.za-player input[type='range'] { display: block; height: 18px; margin: 0; padding: 0; border: 0; background: transparent; accent-color: var(--za-accent); cursor: pointer; }
+.za-player input[type='range']:disabled { opacity: .4; cursor: default; }
+.za-status { grid-area: status; }
+.za-status:not(:empty), .za-transcript-status:not(:empty) { margin-top: 10px; padding: 8px 10px; border-radius: 7px; background: #eef3fa; font-size: 12px; overflow-wrap: anywhere; }
+.za-actions { display: flex; flex: 1 1 auto; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+.za-player .za-transcribe-button { color: #2456ad; border-color: #cbdcf8; background: #edf4ff; }
+.za-player .za-transcribe-button:hover { background: #dfeaff; }
+.za-player .za-options-button { margin-left: auto; color: var(--za-muted); border-color: transparent; background: transparent; font-weight: 500; }
+.za-player .za-options-button:hover { color: #2456ad; background: #edf3ff; }
+.za-transcript-status { grid-area: notice; }
+.za-transcript { grid-area: transcript; display: block; width: 100%; min-width: 0; margin-top: 10px; padding: 12px; border: 1px solid #d5dfeb; border-radius: 9px; color: var(--za-ink); background: #fff; font: 13px/1.65 system-ui, sans-serif; resize: vertical; }
+@media (max-width: 480px) {
+  .za-player { padding: 12px; }
+  .za-volume { gap: 4px; font-size: 0 !important; }
+  .za-volume input { width: 54px; }
+  .za-speed { font-size: 0 !important; }
+  .za-pcm-controls { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .za-player button { transition: none; } }
+
+@container (max-width: 340px) {
+  .za-volume { font-size: 0 !important; gap: 0; }
+  .za-volume input { width: 54px; }
+  .za-speed { font-size: 0 !important; gap: 0; }
+  .za-pcm-controls { gap: 10px; }
+}
+
+/* Override Zammad's readonly textarea and dark-theme form rules. */
+.za-player textarea.za-transcript,
+.za-player textarea.za-transcript[readonly] {
+  display: block;
+  box-sizing: border-box;
+  width: 100% !important;
+  height: auto;
+  min-height: 64px !important;
+  max-height: 240px;
+  margin: 8px 0 0;
+  padding: 12px;
+  border: 1px solid #cbd8e8 !important;
+  border-radius: 9px;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #172b46 !important;
+  -webkit-text-fill-color: #172b46 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  box-shadow: none !important;
+  font: 13px/1.65 system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: text;
+  overflow: auto;
+  resize: vertical;
+  color-scheme: light;
+}
+.za-player textarea.za-transcript::selection { background: #cfe0ff; color: #102a4d; }
+
+@container (max-width: 380px) {
+  .za-toolbar { gap: 6px; }
+  .za-player .za-toolbar button { padding: 6px 8px; font-size: 11px; min-height: 30px; }
+  .za-actions { gap: 4px; }
+}

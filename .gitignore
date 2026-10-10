@@ -1,0 +1,25 @@
+# Local credentials / configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Builds and packages
+dist/
+*.crx
+*.zip
+node_modules/
+
+# Recordings and screenshots
+*.wav
+*.mp3
+*.mp4
+*.webm
+screenshots/
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
