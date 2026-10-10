@@ -1,5 +1,9 @@
-(() => {
+(async () => {
   'use strict';
+  try {
+    const locale = await chrome.runtime.sendMessage({type: 'za-locale'});
+    if (locale?.ok) ZammadI18n.setLanguage(locale.language);
+  } catch { /* Use the browser language if the extension was reloaded. */ }
   const players = new Map();
   const audioExtension = /\.(wav|mp3)\b/i;
   function attachment(link) {
@@ -10,7 +14,7 @@
     const type = (link.getAttribute('type') || '').toLowerCase();
     const name = hints.find(hint => hint && audioExtension.test(hint));
     if (!name && !['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/mpeg'].includes(type)) return null;
-    return {url: url.href, name: name ? name.trim() : 'Allegato audio', mime: /\.mp3\b/i.test(name || '') || type === 'audio/mpeg' ? 'audio/mpeg' : 'audio/wav'};
+    return {url: url.href, name: name ? name.trim() : ZammadI18n.t('Allegato audio'), mime: /\.mp3\b/i.test(name || '') || type === 'audio/mpeg' ? 'audio/mpeg' : 'audio/wav'};
   }
   async function describeAudio(blob, mime) {
     if (mime !== 'audio/wav') return 'MP3';
@@ -18,19 +22,19 @@
     const view = new DataView(buffer);
     const tag = offset => String.fromCharCode(...new Uint8Array(buffer, offset, 4));
     if (buffer.byteLength < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') {
-      throw new Error('Il file ricevuto non ha un’intestazione WAV RIFF valida. Verifica che l’allegato scaricato sia riproducibile.');
+      throw new Error(ZammadI18n.t('Il file ricevuto non ha un’intestazione WAV RIFF valida. Verifica che l’allegato scaricato sia riproducibile.'));
     }
     for (let offset = 12; offset + 8 <= buffer.byteLength;) {
       const size = view.getUint32(offset + 4, true);
-      if (offset + 8 + size > buffer.byteLength) throw new Error('Il file WAV è incompleto o danneggiato.');
+      if (offset + 8 + size > buffer.byteLength) throw new Error(ZammadI18n.t('Il file WAV è incompleto o danneggiato.'));
       if (tag(offset) === 'fmt ' && size >= 16) {
         const codec = view.getUint16(offset + 8, true);
         const codecs = {1: 'PCM', 2: 'Microsoft ADPCM', 3: 'IEEE float', 6: 'A-law', 7: 'µ-law', 17: 'IMA ADPCM', 49: 'GSM 6.10', 65534: 'WAVE extensible'};
-        return 'WAV: ' + (codecs[codec] || 'codec ' + codec) + ' (codice ' + codec + '), ' + view.getUint32(offset + 12, true) + ' Hz, ' + view.getUint16(offset + 10, true) + ' canali, ' + view.getUint16(offset + 22, true) + ' bit';
+        return 'WAV: ' + (codecs[codec] || 'codec ' + codec) + ZammadI18n.t(' (codice ') + codec + '), ' + view.getUint32(offset + 12, true) + ' Hz, ' + view.getUint16(offset + 10, true) + ZammadI18n.t(' canali, ') + view.getUint16(offset + 22, true) + ' bit';
       }
       offset += 8 + size + (size % 2);
     }
-    throw new Error('Il file WAV non contiene una descrizione del formato valida.');
+    throw new Error(ZammadI18n.t('Il file WAV non contiene una descrizione del formato valida.'));
   }
   async function normalizePcm(blob, mime) {
     if (mime !== 'audio/wav') return blob;
@@ -41,18 +45,18 @@
     for (let offset = 12; offset + 8 <= buffer.byteLength;) {
       const tag = String.fromCharCode(...new Uint8Array(buffer, offset, 4));
       const size = view.getUint32(offset + 4, true);
-      if (offset + 8 + size > buffer.byteLength) throw new Error('Il file WAV è incompleto o danneggiato.');
+      if (offset + 8 + size > buffer.byteLength) throw new Error(ZammadI18n.t('Il file WAV è incompleto o danneggiato.'));
       if (tag === 'fmt ' && size >= 16) format = {codec: view.getUint16(offset + 8, true), channels: view.getUint16(offset + 10, true), rate: view.getUint32(offset + 12, true), bits: view.getUint16(offset + 22, true)};
       if (tag === 'data') chunks.push(new Uint8Array(buffer, offset + 8, size));
       offset += 8 + size + (size % 2);
     }
     if (!format || format.codec !== 1) return blob;
-    if (!chunks.length) throw new Error('Il WAV non contiene campioni audio.');
+    if (!chunks.length) throw new Error(ZammadI18n.t('Il WAV non contiene campioni audio.'));
     const {channels, rate, bits} = format;
-    if (!channels || !rate || ![8, 16, 24, 32].includes(bits)) throw new Error('Parametri PCM non validi.');
+    if (!channels || !rate || ![8, 16, 24, 32].includes(bits)) throw new Error(ZammadI18n.t('Parametri PCM non validi.'));
     const align = channels * bits / 8;
     const size = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    if (!size || size % align) throw new Error('I campioni PCM sono vuoti o incompleti.');
+    if (!size || size % align) throw new Error(ZammadI18n.t('I campioni PCM sono vuoti o incompleti.'));
     const header = new ArrayBuffer(44);
     const output = new DataView(header);
     const bytes = new Uint8Array(header);
@@ -81,7 +85,7 @@
     slider.step = '0.1';
     slider.value = '0';
     slider.disabled = true;
-    slider.setAttribute('aria-label', 'Posizione audio in secondi');
+    slider.setAttribute('aria-label', ZammadI18n.t('Posizione audio in secondi'));
     const time = document.createElement('span');
     time.className = 'za-time';
     const formatTime = value => {
@@ -107,7 +111,7 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = (delta > 0 ? '+' : '−') + '10 s';
-      button.setAttribute('aria-label', delta > 0 ? 'Avanti di dieci secondi' : 'Indietro di dieci secondi');
+      button.setAttribute('aria-label', delta > 0 ? ZammadI18n.t('Avanti di dieci secondi') : ZammadI18n.t('Indietro di dieci secondi'));
       button.addEventListener('click', () => seekTo(audio.currentTime + delta));
       row.append(button);
     }
@@ -135,22 +139,22 @@
     headingGroup.className = 'za-heading-group';
     const caption = document.createElement('div');
     caption.className = 'za-caption';
-    caption.textContent = 'Messaggio vocale';
+    caption.textContent = ZammadI18n.t('Messaggio vocale');
     headingGroup.append(caption, heading);
     header.append(headingGroup, fileType);
     const load = document.createElement('button');
     load.type = 'button';
     load.className = 'za-load';
-    load.textContent = 'Riprova caricamento';
+    load.textContent = ZammadI18n.t('Riprova caricamento');
     load.hidden = true;
     const audio = document.createElement('audio');
     audio.controls = true;
     audio.preload = 'auto';
     audio.hidden = true;
-    audio.setAttribute('aria-label', 'Riproduci ' + info.name);
+    audio.setAttribute('aria-label', ZammadI18n.t('Riproduci ') + info.name);
     const label = document.createElement('label');
     label.className = 'za-speed';
-    label.textContent = 'Velocità ';
+    label.textContent = ZammadI18n.t('Velocità ');
     const speed = document.createElement('select');
     for (const value of [1, 1.5, 2]) {
       const option = document.createElement('option');
@@ -176,20 +180,20 @@
     pcmControls.hidden = true;
     const playPause = document.createElement('button');
     playPause.type = 'button';
-    playPause.textContent = 'Riproduci';
+    playPause.textContent = ZammadI18n.t('Riproduci');
     playPause.addEventListener('click', async () => {
       if (!pcm) return;
       try {
         if (pcm.paused) await pcm.play(); else pcm.pause();
-      } catch (error) { status.textContent = 'Riproduzione non riuscita: ' + error.message; }
+      } catch (error) { status.textContent = ZammadI18n.t('Riproduzione non riuscita: ') + error.message; }
     });
     const volumeLabel = document.createElement('label');
-    volumeLabel.textContent = 'Volume ';
+    volumeLabel.textContent = ZammadI18n.t('Volume ');
     volumeLabel.className = 'za-volume';
     const volume = document.createElement('input');
     volume.type = 'range';
     volume.min = '0'; volume.max = '1'; volume.step = '0.01'; volume.value = '1';
-    volume.setAttribute('aria-label', 'Volume');
+    volume.setAttribute('aria-label', ZammadI18n.t('Volume'));
     volume.addEventListener('input', () => { if (pcm) pcm.volume = Number(volume.value); });
     volumeLabel.append(volume);
     pcmControls.append(playPause, volumeLabel);
@@ -198,12 +202,12 @@
     const transcribe = document.createElement('button');
     transcribe.type = 'button';
     transcribe.className = 'za-transcribe-button';
-    transcribe.textContent = 'Trascrivi';
-    transcribe.title = 'Invia questo allegato al servizio Whisper configurato';
+    transcribe.textContent = ZammadI18n.t('Trascrivi');
+    transcribe.title = ZammadI18n.t('Invia questo allegato al servizio Whisper configurato');
     const options = document.createElement('button');
     options.type = 'button';
     options.className = 'za-options-button';
-    options.textContent = 'Impostazioni';
+    options.textContent = ZammadI18n.t('Impostazioni');
     const transcriptStatus = document.createElement('div');
     transcriptStatus.setAttribute('role', 'status');
     transcriptStatus.className = 'za-transcript-status';
@@ -217,10 +221,10 @@
       transcript.style.height = 'auto';
       transcript.style.height = Math.min(240, Math.max(64, transcript.scrollHeight + 2)) + 'px';
     }
-    transcript.setAttribute('aria-label', 'Trascrizione del messaggio vocale');
+    transcript.setAttribute('aria-label', ZammadI18n.t('Trascrizione del messaggio vocale'));
     const copy = document.createElement('button');
     copy.type = 'button';
-    copy.textContent = 'Copia testo';
+    copy.textContent = ZammadI18n.t('Copia testo');
     copy.hidden = true;
     actions.append(transcribe, options, copy);
     const toolbar = document.createElement('div');
@@ -230,21 +234,21 @@
     options.addEventListener('click', async () => {
       try {
         const result = await chrome.runtime.sendMessage({type: 'za-options'});
-        if (!result?.ok) throw new Error(result?.error || 'Impossibile aprire le impostazioni.');
+        if (!result?.ok) throw new Error(result?.error || ZammadI18n.t('Impossibile aprire le impostazioni.'));
       } catch (error) { transcriptStatus.textContent = error.message; }
     });
     transcribe.addEventListener('click', async () => {
       transcribe.disabled = true;
-      transcriptStatus.textContent = 'Trascrizione in corso…';
+      transcriptStatus.textContent = ZammadI18n.t('Trascrizione in corso…');
       try {
         const result = await chrome.runtime.sendMessage({type: 'za-transcribe', url: info.url, mime: info.mime});
-        if (!result?.ok) throw new Error(result?.error || 'Trascrizione interrotta. Verifica il servizio prima di riprovare.');
+        if (!result?.ok) throw new Error(result?.error || ZammadI18n.t('Trascrizione interrotta. Verifica il servizio prima di riprovare.'));
         if (!panel.isConnected) return;
         transcript.value = result.text;
         transcript.hidden = false;
         fitTranscript();
         copy.hidden = !result.text;
-        transcriptStatus.textContent = result.text ? '' : 'Nessun testo riconosciuto.';
+        transcriptStatus.textContent = result.text ? '' : ZammadI18n.t('Nessun testo riconosciuto.');
       } catch (error) {
         if (panel.isConnected) transcriptStatus.textContent = error.message;
       } finally { transcribe.disabled = false; }
@@ -252,11 +256,11 @@
     copy.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(transcript.value);
-        transcriptStatus.textContent = 'Testo copiato.';
+        transcriptStatus.textContent = ZammadI18n.t('Testo copiato.');
       } catch {
         transcript.focus();
         transcript.select();
-        transcriptStatus.textContent = 'Testo selezionato: premi Ctrl+C per copiarlo.';
+        transcriptStatus.textContent = ZammadI18n.t('Testo selezionato: premi Ctrl+C per copiarlo.');
       }
     });
     // Avoid inserting a player inside an existing link or button.
@@ -283,10 +287,10 @@
         inline.searchParams.set('disposition', 'inline');
         audio.src = inline.href;
         audio.load();
-        status.textContent = 'Provo la riproduzione diretta da Zammad…';
+        status.textContent = ZammadI18n.t('Provo la riproduzione diretta da Zammad…');
         return;
       }
-      status.textContent = 'Riproduzione non riuscita. ' + (state.format || 'Formato non rilevato') + '. Errore browser: ' + (audio.error?.code || 'sconosciuto') + '. ' + (audio.error?.message || '') + (state.cspBlocked ? ' La policy di sicurezza della pagina ha bloccato una sorgente audio.' : '') + ' Puoi scaricare il file dal collegamento originale.';
+      status.textContent = ZammadI18n.t('Riproduzione non riuscita. ') + (state.format || ZammadI18n.t('Formato non rilevato')) + ZammadI18n.t('. Errore browser: ') + (audio.error?.code || ZammadI18n.t('sconosciuto')) + '. ' + (audio.error?.message || '') + (state.cspBlocked ? ZammadI18n.t(' La policy di sicurezza della pagina ha bloccato una sorgente audio.') : '') + ZammadI18n.t(' Puoi scaricare il file dal collegamento originale.');
     });
     audio.addEventListener('loadedmetadata', () => { status.textContent = ''; });
     state.status = status;
@@ -294,17 +298,17 @@
       if (state.controller || state.ready || !panel.isConnected) return;
       load.hidden = true;
       load.disabled = true;
-      status.textContent = 'Caricamento audio…';
+      status.textContent = ZammadI18n.t('Caricamento audio…');
       const controller = new AbortController();
       state.controller = controller;
       const timeout = setTimeout(() => controller.abort(), 60000);
       try {
         const response = await fetch(info.url, {credentials: 'same-origin', mode: 'same-origin', redirect: 'error', cache: 'no-store', signal: controller.signal});
-        if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'Sessione scaduta o accesso negato. Accedi nuovamente a Zammad.' : 'Download non riuscito (HTTP ' + response.status + ').');
+        if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? ZammadI18n.t('Sessione scaduta o accesso negato. Accedi nuovamente a Zammad.') : ZammadI18n.t('Download non riuscito (HTTP ') + response.status + ').');
         const type = (response.headers.get('content-type') || '').toLowerCase();
-        if (type.includes('text/html') || type.includes('json')) throw new Error('Zammad non ha restituito un file audio. Verifica la sessione e i permessi.');
+        if (type.includes('text/html') || type.includes('json')) throw new Error(ZammadI18n.t('Zammad non ha restituito un file audio. Verifica la sessione e i permessi.'));
         const blob = await response.blob();
-        if (!blob.size) throw new Error('L’allegato è vuoto.');
+        if (!blob.size) throw new Error(ZammadI18n.t('L’allegato è vuoto.'));
         state.format = await describeAudio(blob, info.mime);
         const playable = await normalizePcm(blob, info.mime);
         if (!panel.isConnected) return;
@@ -316,7 +320,7 @@
           pcm.playbackRate = Number(speed.value);
           for (const type of ['timeupdate', 'seeked', 'pause', 'play', 'ended']) {
             pcm.addEventListener(type, () => {
-              playPause.textContent = pcm.paused ? 'Riproduci' : 'Pausa';
+              playPause.textContent = pcm.paused ? ZammadI18n.t('Riproduci') : ZammadI18n.t('Pausa');
               audio.dispatchEvent(new Event(type));
             });
           }
@@ -340,7 +344,7 @@
         state.ready = true;
       } catch (error) {
         if (panel.isConnected) {
-          status.textContent = error.name === 'AbortError' ? 'Caricamento interrotto o scaduto. Riprova.' : error.message;
+          status.textContent = error.name === 'AbortError' ? ZammadI18n.t('Caricamento interrotto o scaduto. Riprova.') : error.message;
           load.hidden = false;
         }
       } finally {

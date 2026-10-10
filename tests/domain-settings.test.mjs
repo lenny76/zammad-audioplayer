@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 export async function runTests() {
-  const settings = await fs.readFile(new URL('../settings.js', import.meta.url), 'utf8');
+  const settings = (await fs.readFile(new URL('../i18n.js', import.meta.url), 'utf8')) + '\n' + (await fs.readFile(new URL('../settings.js', import.meta.url), 'utf8'));
   const bg = await fs.readFile(new URL('../background.js', import.meta.url), 'utf8');
   let listener;
   let stored = {};
@@ -32,7 +32,7 @@ export async function runTests() {
   result=await send({type:'za-configure-site',origin:'https://tickets.example.org'},options);
   assert.equal(result.ok,true); assert.equal(stored.zammad.origin,'https://tickets.example.org');
   assert.deepEqual(Array.from(scripts[0].matches),['https://tickets.example.org/*']);
-  assert.deepEqual(Array.from(scripts[0].js),['pcm-player.js','content.js']);
+  assert.deepEqual(Array.from(scripts[0].js),['i18n.js','pcm-player.js','content.js']);
   assert.equal(scripts[0].persistAcrossSessions,true);
   const sender={id:'test',url:'https://tickets.example.org/#ticket/1',tab:{id:1}};
   assert.equal((await send({type:'za-options'},sender)).ok,true);
@@ -43,6 +43,12 @@ export async function runTests() {
   assert.equal((await send({type:'za-configure-site',origin:'https://new.example.org'},options)).ok,true);
   assert.equal(scripts.length,1); assert.deepEqual(Array.from(scripts[0].matches),['https://new.example.org/*']);
   assert.equal((await send({type:'za-options'},sender)).ok,false,'Old domain must no longer be accepted');
+  assert.equal((await send({type:'za-set-language',language:'it'},options)).ok,true);
+  assert.equal(stored.uiLanguage,'it');
+  const newSender={...sender,url:'https://new.example.org/'};
+  assert.equal((await send({type:'za-locale'},newSender)).language,'it');
+  assert.equal(listener({type:'za-set-language',language:'en'},newSender,()=>{}),undefined);
+  assert.equal((await send({type:'za-set-language',language:'de'},options)).ok,false);
   const manifest=JSON.parse(await fs.readFile(new URL('../manifest.json', import.meta.url),'utf8'));
   assert.equal(manifest.content_scripts,undefined); assert.equal(manifest.host_permissions,undefined);
   assert.equal(manifest.permissions.includes('scripting'),true);

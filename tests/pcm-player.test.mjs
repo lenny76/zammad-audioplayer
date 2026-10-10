@@ -65,7 +65,7 @@ export async function runTests() {
     emit(type){for(const fn of this.events[type]||[])fn();}
   }
   const helper = content.slice(content.indexOf('  function addSeekControls('),content.indexOf('  function addPlayer('));
-  const seekFactory=vm.runInNewContext('(function(){'+helper+';return addSeekControls;})()', {document:{createElement:()=>new Element()}});
+  const seekFactory=vm.runInNewContext('(function(){'+helper+';return addSeekControls;})()', {document:{createElement:()=>new Element()}, ZammadI18n:{t:message=>message}});
   const row=seekFactory(player);
   const [slider,,back,forward]=row.children;
   slider.value='40'; slider.emit('input');

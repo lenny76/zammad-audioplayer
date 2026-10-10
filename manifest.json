@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Zammad Audio Player",
+  "name": "__MSG_extensionName__",
   "version": "1.0.0",
-  "description": "Ascolta gli allegati WAV e MP3 direttamente nei ticket Zammad.",
+  "description": "__MSG_extensionDescription__",
   "minimum_chrome_version": "102",
   "permissions": [
     "storage",
@@ -20,6 +20,7 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Impostazioni Zammad Audio Player"
-  }
+    "default_title": "__MSG_actionTitle__"
+  },
+  "default_locale": "en"
 }

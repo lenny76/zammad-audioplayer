@@ -4,7 +4,7 @@ Zammad Audio Player has no telemetry or developer-operated backend.
 
 ## Locally stored settings
 
-The configured Zammad origin and Whisper endpoint/model/language/API key are stored in chrome.storage.local, restricted to trusted extension contexts. They are not synchronized to other profiles. The API key can be removed using **Elimina chiave salvata**. Uninstalling the extension removes extension storage.
+The interface language preference, configured Zammad origin and Whisper endpoint/model/language/API key are stored in chrome.storage.local, restricted to trusted extension contexts. They are not synchronized to other profiles. The API key can be removed using **Elimina chiave salvata**. Uninstalling the extension removes extension storage.
 
 ## Recordings and transcription
 

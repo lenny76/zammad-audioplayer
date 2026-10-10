@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "Zammad Audio Player"
+  },
+  "extensionDescription": {
+    "message": "Ascolta gli allegati audio nei ticket Zammad, con trascrizione Whisper facoltativa."
+  },
+  "actionTitle": {
+    "message": "Impostazioni Zammad Audio Player"
+  }
+}
