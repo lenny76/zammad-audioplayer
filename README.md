@@ -76,3 +76,7 @@ Publishing a source repository does not publish the extension to browser stores.
 ## Build a release ZIP
 
 Run `node tools/package.mjs` with Node.js 18+. The ZIP is written to dist/ and contains only extension runtime files and public documentation, including both language catalogs. The builder verifies file contents and CRCs before writing the archive.
+
+## License
+
+[MIT](LICENSE) — Copyright (c) 2026 lenny76. Free to use, modify and redistribute, including commercially, while preserving the copyright and license notice.

@@ -8,7 +8,7 @@ const table=Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=(n&1)?0xedb883
 function crc32(buffer){let crc=0xffffffff;for(const byte of buffer)crc=table[(crc^byte)&255]^(crc>>>8);return(crc^0xffffffff)>>>0;}
 export async function buildPackage(root=fileURLToPath(new URL('../',import.meta.url))) {
   const manifest=JSON.parse(await fs.readFile(path.join(root,'manifest.json'),'utf8'));
-  const files=['manifest.json','background.js','settings.js','i18n.js','content.js','pcm-player.js','player.css','options.html','options.js','options.css','README.md','PRIVACY.md','_locales/en/messages.json','_locales/it/messages.json'];
+  const files=['manifest.json','background.js','settings.js','i18n.js','content.js','pcm-player.js','player.css','options.html','options.js','options.css','README.md','PRIVACY.md','LICENSE','_locales/en/messages.json','_locales/it/messages.json'];
   const chunks=[],central=[],originals=new Map();let offset=0;
   for(const name of files){
     const body=await fs.readFile(path.join(root,name));originals.set(name,body);
